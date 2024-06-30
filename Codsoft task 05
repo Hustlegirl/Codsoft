@@ -1,0 +1,40 @@
+import cv2
+
+# Load the pre-trained Haar Cascade model for face detection
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# Load an image or video frame
+img = cv2.imread('image.jpg')
+
+# Convert to grayscale for detection
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# Perform face detection
+faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+# Draw rectangles around detected faces
+for (x, y, w, h) in faces:
+    cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
+
+# Display the output image
+cv2.imshow('Detected Faces', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+import face_recognition
+
+# Load an image with faces
+image = face_recognition.load_image_file("image.jpg")
+
+# Find all face locations and encodings in the image
+face_locations = face_recognition.face_locations(image)
+face_encodings = face_recognition.face_encodings(image, face_locations)
+
+# Compare faces based on encodings
+known_face_encodings = [...]  # List of known face encodings
+unknown_face_encoding = face_encodings[0]  # Assuming only one face in the image
+
+# Compare with known faces
+results = face_recognition.compare_faces(known_face_encodings, unknown_face_encoding)
+
+# Print results (True/False)
+print(results)
