@@ -1,0 +1,56 @@
+import numpy as np
+from scipy.spatial.distance import cosine
+
+# Example user-item ratings matrix (rows are users, columns are items)
+ratings = np.array([
+    [5, 3, 0, 4],
+    [4, 0, 0, 1],
+    [1, 1, 0, 5],
+    [0, 0, 4, 4],
+    [0, 1, 5, 0],
+])
+
+# Function to compute cosine similarity
+def cosine_similarity(u, v):
+    return 1 - cosine(u, v)
+
+# Function to generate recommendations
+def recommend_items(user_id, ratings, similarity_matrix, num_recommendations=3):
+    # Calculate mean ratings for all items
+    mean_ratings = np.mean(ratings, axis=0)
+    
+    # Find similar users to the given user_id
+    similarities = similarity_matrix[user_id]
+    similar_users = np.argsort(similarities)[::-1]  # Sort in descending order
+    
+    # Generate recommendations
+    recommendations = []
+    for item_id in range(ratings.shape[1]):
+        if ratings[user_id, item_id] == 0:  # Not rated yet
+            predicted_rating = 0
+            sim_sum = 0
+            for sim_user in similar_users:
+                if ratings[sim_user, item_id] > 0:  # Similar user rated this item
+                    sim = similarities[sim_user]
+                    predicted_rating += sim * (ratings[sim_user, item_id] - mean_ratings[item_id])
+                    sim_sum += np.abs(sim)
+            if sim_sum > 0:
+                predicted_rating /= sim_sum
+            recommendations.append((item_id, predicted_rating))
+    
+    # Sort recommendations by predicted rating
+    recommendations.sort(key=lambda x: x[1], reverse=True)
+    
+    return recommendations[:num_recommendations]
+
+# Example usage
+user_id = 0  # User for whom we want to generate recommendations
+similarity_matrix = np.zeros((ratings.shape[0], ratings.shape[0]))
+for i in range(ratings.shape[0]):
+    for j in range(ratings.shape[0]):
+        similarity_matrix[i, j] = cosine_similarity(ratings[i], ratings[j])
+
+recommendations = recommend_items(user_id, ratings, similarity_matrix)
+print(f"Recommendations for user {user_id}:")
+for item_id, predicted_rating in recommendations:
+    print(f"Item {item_id}: Predicted rating = {predicted_rating:.2f}")
