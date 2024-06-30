@@ -1,0 +1,103 @@
+# Initial empty board
+initial_board = [' '] * 9
+def print_board(board):
+    print(f" {board[0]} | {board[1]} | {board[2]} ")
+    print("---|---|---")
+    print(f" {board[3]} | {board[4]} | {board[5]} ")
+    print("---|---|---")
+    print(f" {board[6]} | {board[7]} | {board[8]} ")
+def valid_moves(board):
+    return [i for i in range(9) if board[i] == ' ']
+def evaluate(board):
+    lines = [(0, 1, 2), (3, 4, 5), (6, 7, 8),  # rows
+             (0, 3, 6), (1, 4, 7), (2, 5, 8),  # columns
+             (0, 4, 8), (2, 4, 6)]  # diagonals
+
+    for line in lines:
+        if board[line[0]] == board[line[1]] == board[line[2]] != ' ':
+            if board[line[0]] == 'X':
+                return 1
+            else:
+                return -1
+
+    if ' ' not in board:
+        return 0  # Draw
+
+    return None  # Game is ongoing
+def minimax(board, depth, alpha, beta, is_maximizing):
+    result = evaluate(board)
+
+    if result is not None:
+        return result
+
+    if is_maximizing:
+        max_eval = -float('inf')
+        for move in valid_moves(board):
+            board[move] = 'X'
+            eval = minimax(board, depth + 1, alpha, beta, False)
+            board[move] = ' '
+            max_eval = max(max_eval, eval)
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break
+        return max_eval
+    else:
+        min_eval = float('inf')
+        for move in valid_moves(board):
+            board[move] = 'O'
+            eval = minimax(board, depth + 1, alpha, beta, True)
+            board[move] = ' '
+            min_eval = min(min_eval, eval)
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+        return min_eval
+def ai_move(board):
+    best_move = -1
+    best_eval = -float('inf')
+    alpha = -float('inf')
+    beta = float('inf')
+
+    for move in valid_moves(board):
+        board[move] = 'X'
+        eval = minimax(board, 0, alpha, beta, False)
+        board[move] = ' '
+        if eval > best_eval:
+            best_eval = eval
+            best_move = move
+
+    return best_move
+def play_game():
+    board = [' '] * 9
+    current_player = 'X'
+
+    while True:
+        print_board(board)
+
+        if current_player == 'X':  # AI's turn
+            move = ai_move(board)
+            board[move] = 'X'
+            current_player = 'O'
+        else:  # Human player's turn
+            try:
+                move = int(input("Enter your move (0-8): "))
+                if board[move] != ' ':
+                    print("Invalid move. Try again.")
+                    continue
+                board[move] = 'O'
+                current_player = 'X'
+            except ValueError:
+                print("Invalid input. Enter a number between 0-8.")
+                continue
+
+        result = evaluate(board)
+        if result is not None:
+            print_board(board)
+            if result == 1:
+                print("AI wins!")
+            elif result == -1:
+                print("Human wins!")
+            else:
+                print("It's a draw!")
+            break
+play_game()
